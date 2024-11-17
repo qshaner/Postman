@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from "react";
 import data from "../mock-request-data.json";
+import * as d3 from "d3";
+import { LineChart } from "./LineChart";
 
 type TableData = {
   timestamp: string;
@@ -9,6 +11,13 @@ type TableData = {
   error?: string;
 };
 
+const formatDate = (date) => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0'); // Months are 0-based
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+
 const DataTable = () => {
   const [tableData, setTableData] = useState<TableData[]>([]);
   const [filteredData, setFilteredData] = useState<TableData[]>([]);
@@ -16,15 +25,58 @@ const DataTable = () => {
   const [pathFilter, setPathFilter] = useState<string>("");
   const [sortedOptions, setSortedOptions] = useState<boolean>(false);
   const [sortedStatus, setSortedStatus] = useState<boolean>(false);
+  const [avgResponseTimes, setAvgResponseTimes] = useState<Record<string, number>>({});
+  const [errorCounts, setErrorCounts] = useState<Record<string, number>>({});
 
   useEffect(() => {
     setTableData(data);
     setFilteredData(data); // Initialize filtered data
+    calculateAverageResponseTimes(data); // Calculate averages on load
+    calculateErrorCounts(data); // Calculate error counts on load
   }, []);
 
+  const calculateAverageResponseTimes = (data: TableData[]) => {
+    const grouped: Record<string, { total: number; count: number }> = {};
+
+    data.forEach((item) => {
+      if (!grouped[item.path]) {
+        grouped[item.path] = { total: 0, count: 0 };
+      }
+      grouped[item.path].total += item.response_time;
+      grouped[item.path].count += 1;
+    });
+
+    // Calculate averages
+    const averages: Record<string, number> = {};
+    for (const path in grouped) {
+      averages[path] = grouped[path].total / grouped[path].count;
+    }
+
+    setAvgResponseTimes(averages);
+  };
+
+  const calculateErrorCounts = (data: TableData[]) => {
+    const errors: Record<string, number> = {};
+
+    data.forEach((item) => {
+      const isError =
+        (item.status_code >= 400 && item.status_code <= 451) ||
+        (item.status_code >= 500 && item.status_code <= 511);
+
+      if (isError) {
+        if (!errors[item.path]) {
+          errors[item.path] = 0;
+        }
+        errors[item.path] += 1;
+      }
+    });
+
+    setErrorCounts(errors);
+  };
+
   const onFilter = () => {
-    // Start with the original unfiltered data
     let filtered = [...tableData];
+    filtered = filtered.sort((a,b)=> Date.parse(a.timestamp) - Date.parse(b.timestamp))
 
     // Apply status code filter
     if (statusFilter) {
@@ -50,18 +102,26 @@ const DataTable = () => {
       filtered = filtered.sort((a, b) => a.status_code - b.status_code);
     }
 
-    // Update the filtered data state
+
     setFilteredData(filtered);
   };
 
-  // Apply filters whenever any filter or sort state changes
   useEffect(() => {
     onFilter();
-  }, [statusFilter, pathFilter, sortedOptions, sortedStatus, tableData]);
+  }, [statusFilter, pathFilter, sortedOptions, sortedStatus]);
+
+ console.log("DATA POINTS: ", data.filter((d)=> d.path === "/a").sort((a,b)=> Date.parse(a.timestamp) - Date.parse(b.timestamp)).map((point)=> ({
+    x: Date.parse(point.timestamp),
+    y: point.response_time    
+})))
 
   return (
     <div>
       <h2>API Response Table</h2>
+      <LineChart width={600} height={600} data={data.filter((entry)=> entry.path === "/a/f").sort((a,b)=> Date.parse(a.timestamp) - Date.parse(b.timestamp)).map((point)=> ({
+        x: formatDate(new Date(point.timestamp)),
+        y: point.response_time    
+  }))} />
       <div>
         <label>
           Status Code:
@@ -118,7 +178,7 @@ const DataTable = () => {
           {filteredData.length > 0 ? (
             filteredData.map((item, index) => (
               <tr key={index}>
-                <td>{item.timestamp}</td>
+                <td>{new Date(item.timestamp).toLocaleString()}</td>
                 <td>{item.path}</td>
                 <td>{item.response_time}</td>
                 <td>{item.status_code}</td>
@@ -132,8 +192,45 @@ const DataTable = () => {
           )}
         </tbody>
       </table>
+
+      <h3>Average Response Times by Path</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>API Endpoint</th>
+            <th>Average Response Time (ms)</th>
+          </tr>
+        </thead>
+        <tbody>
+          {Object.entries(avgResponseTimes).map(([path, avgTime]) => (
+            <tr key={path}>
+              <td>{path}</td>
+              <td>{avgTime.toFixed(2)}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+
+      <h3>Error Counts by Path</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>API Endpoint</th>
+            <th>Error Count</th>
+          </tr>
+        </thead>
+        <tbody>
+          {Object.entries(errorCounts).map(([path, count]) => (
+            <tr key={path}>
+              <td>{path}</td>
+              <td>{count}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
     </div>
   );
+
 };
 
 export default DataTable;
