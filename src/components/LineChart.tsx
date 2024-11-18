@@ -74,6 +74,14 @@ export const LineChart = ({ width, height, data, title }: LineChartProps) => {
         // Update the domain with the brushed range
         setDomain([x0, x1]);
 
+        svg.append('defs').append("svg:clipPath")
+        .attr("id", "clip")
+        .append('svg:rect')
+        .attr('width', width)
+        .attr("height", height)
+        .attr("x", 0)
+        .attr("y", 0)
+
         // Clear the brush area
         svg.select(".brush").call(brush.move, null);
       });
@@ -82,7 +90,7 @@ export const LineChart = ({ width, height, data, title }: LineChartProps) => {
     svg
       .select<SVGGElement>(".brush")
       .call(brush)
-      .call((g) => g.select(".overlay").style("cursor", "crosshair"));
+      .call((g) => g.select(".overlay").style("cursor", "crosshair")).append("g").attr("clip-path", "url(#clip)");
   }, [xScale, boundsWidth, boundsHeight]);
 
  // Render axes whenever domain changes
@@ -127,6 +135,7 @@ export const LineChart = ({ width, height, data, title }: LineChartProps) => {
             stroke="#9a6fb0"
             fill="none"
             strokeWidth={2}
+            clipPath={"url(#clip)"}
           />
         </g>
         {/* Axes */}
