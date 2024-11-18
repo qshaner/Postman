@@ -9,9 +9,10 @@ type LineChartProps = {
   width: number;
   height: number;
   data: DataPoint[];
+  title: string;
 };
 
-export const LineChart = ({ width, height, data }: LineChartProps) => {
+export const LineChart = ({ width, height, data, title }: LineChartProps) => {
   
   // bounds = area inside the graph axis = calculated by subtracting the margins
   const axesRef = useRef(null);
@@ -73,15 +74,29 @@ export const LineChart = ({ width, height, data }: LineChartProps) => {
   useEffect(() => {
     const svgElement = d3.select(axesRef.current);
     svgElement.selectAll("*").remove();
+
+    // X Axis
     const xAxisGenerator = d3.axisBottom(xScale);
     svgElement
       .append("g")
       .attr("transform", "translate(" + MARGIN.left + "," + (boundsHeight + MARGIN.top) + ")")
       .call(xAxisGenerator);
 
+    // Y Axis
     const yAxisGenerator = d3.axisLeft(yScale);
     svgElement.append("g").attr("transform", "translate(" + MARGIN.left + "," + MARGIN.top + ")").call(yAxisGenerator);
-  }, [xScale, yScale, boundsHeight]);
+
+    // Title
+    svgElement
+      .append("text")
+      .attr("x", width / 2) // Position title in the center of the graph
+      .attr("y", MARGIN.top / 2) // Position title above the chart area
+      .attr("text-anchor", "middle")
+      .style("font-size", "16px")
+      .style("font-weight", "bold") // Optional: Make the title bold
+      .style("text-decoration", "underline")
+      .text(title); // The title text
+  }, [xScale, yScale, boundsHeight, width]);
 
   // Build the line
   const lineBuilder = d3
@@ -113,6 +128,7 @@ export const LineChart = ({ width, height, data }: LineChartProps) => {
         <g ref={axesRef}>
           {/* Y-axis and X-axis will be rendered inside this group */}
         </g>
+        
         {/* Brushing overlay */}
         <rect
           width={boundsWidth}

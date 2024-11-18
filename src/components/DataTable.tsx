@@ -114,10 +114,22 @@ const DataTable = () => {
   return (
     <div>
       <h2>API Response Table</h2>
-      {pathFilter && data.filter((entry)=> entry.path === pathFilter.toLowerCase()).length > 0 && <LineChart width={800} height={600} data={data.filter((entry)=> entry.path === pathFilter.toLowerCase()).sort((a,b)=> Date.parse(a.timestamp) - Date.parse(b.timestamp)).map((point)=> ({
+      {
+        //Ideally, this would keep the last entry up until you filter again, OR have all lines in the same graph. 
+      }
+      {pathFilter && data.filter((entry)=> entry.path === pathFilter.toLowerCase()).length > 0 &&
+      <div>
+       <LineChart title="Response Time Over Time" width={800} height={600} data={data.filter((entry)=> entry.path === pathFilter.toLowerCase()).sort((a,b)=> Date.parse(a.timestamp) - Date.parse(b.timestamp)).map((point)=> ({
         x: formatDate(new Date(point.timestamp)),
         y: point.response_time    
-  }))} />}
+  }))} />
+  </div>}
+  {/* {pathFilter && data.filter((entry)=> entry.path === pathFilter.toLowerCase()).length > 0 &&
+      <div>
+       <BarChart title="Status Code Over Time" width={800} height={600} data={data.filter((entry)=> entry.path === pathFilter.toLowerCase()).sort((a,b)=> Date.parse(a.timestamp) - Date.parse(b.timestamp)).map((point)=> ({
+        x: formatDate(new Date(point.timestamp)),
+        y: point.status_code    
+  }))} /></div>} */}
       <div>
         <label>
           Status Code:
