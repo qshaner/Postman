@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import * as d3 from "d3";
 
-const MARGIN = { top: 30, right: 30, bottom: 50, left: 80 };
+const MARGIN = { top: 30, right: 30, bottom: 80, left: 80 };
 
 type DataPoint = { x: string; y: number };
 
@@ -16,12 +16,9 @@ export const LineChart = ({ width, height, data, title }: LineChartProps) => {
   
   // bounds = area inside the graph axis = calculated by subtracting the margins
   const axesRef = useRef(null);
+  const svgRef = useRef<SVGSVGElement>(null); 
   const boundsWidth = width - MARGIN.right - MARGIN.left;
   const boundsHeight = height - MARGIN.top - MARGIN.bottom;
-
-  const [isBrushing, setIsBrushing] = useState(false);
-  const [brushStart, setBrushStart] = useState<number | null>(null);
-  const [brushEnd, setBrushEnd] = useState<number | null>(null);
 
   // Y axis
   const max = d3.max(data, (d) => d.y);
@@ -46,62 +43,10 @@ export const LineChart = ({ width, height, data, title }: LineChartProps) => {
 
   const xScale = d3.scaleTime().domain(domain).range([0, boundsWidth]);
 
-  // Mouse handlers for 'select a zoomable area for viewing time'
-  const handleMouseDown = (event: React.MouseEvent<SVGRectElement>) => {
-    setIsBrushing(true);
-    setBrushStart(event.nativeEvent.offsetX);
-    setBrushEnd(null);
-  };
-
-  const handleMouseMove = (event: React.MouseEvent<SVGRectElement>) => {
-    if (!isBrushing || brushStart === null) return;
-    setBrushEnd(event.nativeEvent.offsetX);
-  };
-
-  const handleMouseUp = () => {
-    if (isBrushing && brushStart !== null && brushEnd !== null) {
-      const startX = Math.min(brushStart, brushEnd);
-      const endX = Math.max(brushStart, brushEnd);
-      const newDomain = [xScale.invert(startX), xScale.invert(endX)];
-      setDomain(newDomain);
-    }
-    setIsBrushing(false);
-    setBrushStart(null);
-    setBrushEnd(null);
-  };
-
-  // Render the X and Y axis using d3.js
-  useEffect(() => {
-    const svgElement = d3.select(axesRef.current);
-    svgElement.selectAll("*").remove();
-
-    // X Axis
-    const xAxisGenerator = d3.axisBottom(xScale);
-    svgElement
-      .append("g")
-      .attr("transform", "translate(" + MARGIN.left + "," + (boundsHeight + MARGIN.top) + ")")
-      .call(xAxisGenerator);
-
-    // Y Axis
-    const yAxisGenerator = d3.axisLeft(yScale);
-    svgElement.append("g").attr("transform", "translate(" + MARGIN.left + "," + MARGIN.top + ")").call(yAxisGenerator);
-
-    // Title
-    svgElement
-      .append("text")
-      .attr("x", width / 2) // Position title in the center of the graph
-      .attr("y", MARGIN.top / 2) // Position title above the chart area
-      .attr("text-anchor", "middle")
-      .style("font-size", "16px")
-      .style("font-weight", "bold") // Optional: Make the title bold
-      .style("text-decoration", "underline")
-      .text(title); // The title text
-  }, [xScale, yScale, boundsHeight, width]);
-
-  // Build the line
-  const lineBuilder = d3
+    // Build the line
+    const lineBuilder = d3
     .line<DataPoint>()
-    .x((d) => xScale(customTimeParser(d.x)))
+    .x((d) => xScale(customTimeParser(d.x))+MARGIN.left)
     .y((d) => yScale(d.y));
   const linePath = lineBuilder(data);
 
@@ -109,52 +54,91 @@ export const LineChart = ({ width, height, data, title }: LineChartProps) => {
     return null;
   }
 
+
+   // Brushing and zooming effect
+   useEffect(() => {
+    const svg = d3.select(svgRef.current);
+
+    // Create a brush
+    const brush = d3
+      .brushX()
+      .extent([
+        [MARGIN.left, MARGIN.top],
+        [MARGIN.left + boundsWidth, MARGIN.top + boundsHeight],
+      ])
+      .on("end", (event) => {
+        if (!event.selection) return; // Ignore empty selections
+
+        const [x0, x1] = event.selection.map((d) => xScale.invert(d - MARGIN.left));
+
+        // Update the domain with the brushed range
+        setDomain([x0, x1]);
+
+        // Clear the brush area
+        svg.select(".brush").call(brush.move, null);
+      });
+
+    // Attach brush to the SVG
+    svg
+      .select<SVGGElement>(".brush")
+      .call(brush)
+      .call((g) => g.select(".overlay").style("cursor", "crosshair"));
+  }, [xScale, boundsWidth, boundsHeight]);
+
+ // Render axes whenever domain changes
+ useEffect(() => {
+    const svg = d3.select(axesRef.current);
+    svg.selectAll("*").remove();
+
+    // X Axis
+    const xAxisGenerator = d3.axisBottom(xScale);
+    svg
+      .append("g")
+      .attr("transform", `translate(${MARGIN.left}, ${boundsHeight + MARGIN.top})`)
+      .call(xAxisGenerator);
+
+    // Y Axis
+    const yAxisGenerator = d3.axisLeft(yScale);
+    svg
+      .append("g")
+      .attr("transform", `translate(${MARGIN.left}, ${MARGIN.top})`)
+      .call(yAxisGenerator);
+
+    // Title
+    svg
+      .append("text")
+      .attr("x", width / 2)
+      .attr("y", MARGIN.top / 2)
+      .attr("text-anchor", "middle")
+      .style("font-size", "16px")
+      .style("font-weight", "bold")
+      .text(title);
+  }, [xScale, yScale, boundsHeight, width]);
+
+
   return (
-    <div style={{ position: 'relative' }}>
-      <svg width={width} height={height}>
-        <g
-          width={boundsWidth}
-          height={boundsHeight}
-          transform={`translate(${[MARGIN.left, MARGIN.top].join(',')})`}
-        >
+    <div style={{ position: "relative" }}>
+      <svg ref={svgRef} width={width} height={height}>
+        {/* Line Path */}
+        <g transform={`translate(${MARGIN.left}, ${MARGIN.top})`}>
           <path
-            d={linePath}
+            d={linePath || ""}
             opacity={1}
             stroke="#9a6fb0"
             fill="none"
             strokeWidth={2}
           />
         </g>
-        <g ref={axesRef}>
-          {/* Y-axis and X-axis will be rendered inside this group */}
-        </g>
-        
-        {/* Brushing overlay */}
-        <rect
-          width={boundsWidth}
-          height={boundsHeight}
-          fill="transparent"
-          onMouseDown={handleMouseDown}
-          onMouseMove={handleMouseMove}
-          onMouseUp={handleMouseUp}
-        />
-        {isBrushing && brushStart !== null && brushEnd !== null && (
-          <rect
-            x={Math.min(brushStart, brushEnd)}
-            width={Math.abs(brushEnd - brushStart)}
-            height={boundsHeight}
-            fill="rgba(154, 111, 176, 0.3)"
-            pointerEvents={'none'}
-            
-          />
-        )}
+        {/* Axes */}
+        <g ref={axesRef} />
+        {/* Brushing Overlay */}
+        <g className="brush" />
       </svg>
       <div
         style={{
-          position: 'absolute',
+          position: "absolute",
           top: 0,
-          right: 0,
-          border: 'solid black 2px',
+          border: "solid black 2px",
           padding: 3,
         }}
       >

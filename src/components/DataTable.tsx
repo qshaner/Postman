@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import data from "../mock-request-data.json";
 import * as d3 from "d3";
 import { LineChart } from "./LineChart";
+import { BarChart } from "./BarChart";
 
 type TableData = {
   timestamp: string;
@@ -11,7 +12,7 @@ type TableData = {
   error?: string;
 };
 
-const formatDate = (date) => {
+const formatDate = (date: Date) => {
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, '0'); // Months are 0-based
     const day = String(date.getDate()).padStart(2, '0');
@@ -74,6 +75,26 @@ const DataTable = () => {
     setErrorCounts(errors);
   };
 
+
+  const getErrorCountByDate = (data: TableData[], targetDate: string) => {
+    const formattedTargetDate = formatDate(new Date(targetDate)); // Ensure date format is "YYYY-MM-DD"
+    let errorCount = 0;
+  
+    data.forEach((item) => {
+      const isError =
+        (item.status_code >= 400 && item.status_code <= 451) ||
+        (item.status_code >= 500 && item.status_code <= 511);
+  
+      const itemDate = formatDate(new Date(item.timestamp));
+  
+      if (isError && itemDate === formattedTargetDate) {
+        errorCount += 1;
+      }
+    });
+  
+    return errorCount;
+  };
+
   const onFilter = () => {
     let filtered = [...tableData];
     filtered = filtered.sort((a,b)=> Date.parse(a.timestamp) - Date.parse(b.timestamp))
@@ -90,6 +111,7 @@ const DataTable = () => {
       filtered = filtered.filter((item) =>
         item.path.toLowerCase().includes(pathFilter.toLowerCase())
       );
+      
     }
 
     // Apply sorting by path
@@ -124,12 +146,22 @@ const DataTable = () => {
         y: point.response_time    
   }))} />
   </div>}
-  {/* {pathFilter && data.filter((entry)=> entry.path === pathFilter.toLowerCase()).length > 0 &&
-      <div>
-       <BarChart title="Status Code Over Time" width={800} height={600} data={data.filter((entry)=> entry.path === pathFilter.toLowerCase()).sort((a,b)=> Date.parse(a.timestamp) - Date.parse(b.timestamp)).map((point)=> ({
-        x: formatDate(new Date(point.timestamp)),
-        y: point.status_code    
-  }))} /></div>} */}
+  {pathFilter && data.filter((entry) => entry.path.toLowerCase() === pathFilter.toLowerCase()).length > 0 && (
+  <div>
+    <BarChart
+      title="Error Count Over Time"
+      width={800}
+      height={600}
+      data={data
+        .filter((entry) => entry.path.toLowerCase() === pathFilter.toLowerCase())
+        .sort((a, b) => Date.parse(a.timestamp) - Date.parse(b.timestamp))
+        .map((point) => ({
+          x: formatDate(new Date(point.timestamp)),
+          y: getErrorCountByDate(data, formatDate(new Date(point.timestamp))),
+        }))}
+    />
+  </div>
+)}
       <div>
         <label>
           Status Code:
