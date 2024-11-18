@@ -110,18 +110,14 @@ const DataTable = () => {
     onFilter();
   }, [statusFilter, pathFilter, sortedOptions, sortedStatus]);
 
- console.log("DATA POINTS: ", data.filter((d)=> d.path === "/a").sort((a,b)=> Date.parse(a.timestamp) - Date.parse(b.timestamp)).map((point)=> ({
-    x: Date.parse(point.timestamp),
-    y: point.response_time    
-})))
 
   return (
     <div>
       <h2>API Response Table</h2>
-      <LineChart width={600} height={600} data={data.filter((entry)=> entry.path === "/a/f").sort((a,b)=> Date.parse(a.timestamp) - Date.parse(b.timestamp)).map((point)=> ({
+      {pathFilter && data.filter((entry)=> entry.path === pathFilter.toLowerCase()).length > 0 && <LineChart width={800} height={600} data={data.filter((entry)=> entry.path === pathFilter.toLowerCase()).sort((a,b)=> Date.parse(a.timestamp) - Date.parse(b.timestamp)).map((point)=> ({
         x: formatDate(new Date(point.timestamp)),
         y: point.response_time    
-  }))} />
+  }))} />}
       <div>
         <label>
           Status Code:

@@ -1,9 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import * as d3 from "d3";
-import { XAxis } from "./XAxis";
-import { YAxis } from "./YAxis";
 
-const MARGIN = { top: 30, right: 30, bottom: 50, left: 50 };
+const MARGIN = { top: 30, right: 30, bottom: 50, left: 80 };
 
 type DataPoint = { x: string; y: number };
 
@@ -47,7 +45,7 @@ export const LineChart = ({ width, height, data }: LineChartProps) => {
 
   const xScale = d3.scaleTime().domain(domain).range([0, boundsWidth]);
 
-  // Mouse handlers for custom brushing
+  // Mouse handlers for 'select a zoomable area for viewing time'
   const handleMouseDown = (event: React.MouseEvent<SVGRectElement>) => {
     setIsBrushing(true);
     setBrushStart(event.nativeEvent.offsetX);
@@ -131,6 +129,7 @@ export const LineChart = ({ width, height, data }: LineChartProps) => {
             height={boundsHeight}
             fill="rgba(154, 111, 176, 0.3)"
             pointerEvents={'none'}
+            
           />
         )}
       </svg>
