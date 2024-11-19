@@ -147,7 +147,6 @@ export const LineChart = ({ width, height, data, title }: LineChartProps) => {
         style={{
           position: "absolute",
           top: 0,
-          border: "solid black 2px",
           padding: 3,
         }}
       >

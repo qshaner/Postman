@@ -1,0 +1,199 @@
+/* General styles */
+body {
+    font-family: 'Arial', sans-serif;
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    background-color: #f9f9f9;
+  }
+  
+  h2 {
+    text-align: center;
+    margin: 20px 0;
+    color: #333;
+  }
+  
+  .filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    justify-content: center;
+    padding: 20px;
+    background-color: #ffffff;
+    border-bottom: 2px solid #eaeaea;
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+  }
+  
+  .filters label {
+    display: flex;
+    flex-direction: column;
+    font-size: 14px;
+    color: #555;
+  }
+  
+  .filters input[type="text"] {
+    padding: 5px 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 14px;
+  }
+  
+  .filters input[type="checkbox"] {
+    margin-top: 5px;
+  }
+  
+  .chartContainer {
+    flex: 1 1 45%; /* Take up about 45% of the width on larger screens */
+    margin: 10px;
+    background-color: #fff;
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    display: flex;
+    justify-content: center; /* Center the chart content */
+    align-items: center; /* Center the chart content */
+  }
+  
+  .graphWrapper {
+    display: flex;
+    flex-wrap: wrap; /* Wrap graphs to the next row if they don’t fit */
+    justify-content: center;
+    margin: 20px auto;
+    max-width: 1200px;
+    gap: 20px; /* Space between graphs */
+  }
+  
+  /* Responsive behavior */
+  @media (max-width: 768px) {
+    .chartContainer {
+      flex: 1 1 100%; /* Take full width in smaller screens */
+      padding: 10px;
+    }
+  
+    .graphWrapper {
+      flex-direction: column; /* Stack graphs vertically */
+      gap: 10px; /* Reduce spacing for smaller screens */
+    }
+  }
+  
+  .statisticsContainer {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 20px;
+    padding: 20px;
+  }
+  
+  .statisticsSection {
+    flex: 1;
+    min-width: 300px;
+    max-width: 600px;
+    padding: 20px;
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  }
+  
+  .statisticsSection table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  
+  .statisticsSection th,
+  .statisticsSection td {
+    text-align: left;
+    padding: 10px;
+    border-bottom: 1px solid #eaeaea;
+  }
+  
+  .statisticsSection th {
+    background-color: #f5f5f5;
+    color: #333;
+  }
+  
+  .table {
+    width: 100%;
+    max-width: 95%;
+    margin: 20px auto;
+    border-collapse: collapse;
+    background-color: #fff;
+    border: 1px solid #eaeaea;
+  }
+  
+  .table thead, .table tbody {
+    display: block;
+  }
+  
+  .table tbody {
+    max-height: 60vh; /* Limit the height of the scrollable area */
+    overflow-y: auto; /* Enable vertical scrolling */
+  }
+  
+  .table th, .table td {
+    padding: 10px;
+    border-bottom: 1px solid #eaeaea;
+    text-align: left;
+    width: auto; /* Ensure columns take up appropriate space */
+  }
+  
+  .table tr {
+    display: table; /* Retain table row structure */
+    width: 100%; /* Ensure rows stretch across the table */
+    table-layout: fixed; /* Prevent squishing */
+  }
+  
+  .table th {
+    position: sticky;
+    top: 0;
+    background-color: #007bff;
+    color: #fff;
+    z-index: 100;
+  }
+  
+  .table tr:nth-child(even) {
+    background-color: #f9f9f9;
+  }
+  
+  
+  /* Responsive Design */
+  @media (max-width: 768px) {
+    .filters {
+      flex-direction: column;
+      align-items: stretch;
+    }
+  
+    .statisticsContainer {
+      flex-direction: column;
+      align-items: center;
+    }
+  
+    .chartContainer {
+      padding: 10px;
+    }
+  
+    .table th,
+    .table td {
+      font-size: 12px;
+      padding: 8px;
+    }
+  }
+  
+  @media (max-width: 480px) {
+    .filters label {
+      font-size: 12px;
+    }
+  
+    .filters input[type="text"],
+    .filters input[type="checkbox"] {
+      font-size: 12px;
+    }
+  
+    .table th,
+    .table td {
+      font-size: 10px;
+      padding: 6px;
+    }
+  }
+  

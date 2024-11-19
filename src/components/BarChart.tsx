@@ -74,7 +74,8 @@ export const BarChart = ({ title, width, height, data }:BarChartProps) => {
       .attr("y", MARGIN.top / 2)
       .attr("text-anchor", "middle")
       .text(title)
-      .style("font-size", "16px");
+      .style("font-size", "16px")
+      .style("font-weight", "bold");
   }, [data]);
 
   return <svg ref={svgRef} width={width} height={height} />;

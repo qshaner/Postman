@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from "react";
+import  { useState, useEffect } from "react";
 import data from "../mock-request-data.json";
-import * as d3 from "d3";
 import { LineChart } from "./LineChart";
 import { BarChart } from "./BarChart";
+
+import styles from './styles.module.css'
 
 type TableData = {
   timestamp: string;
@@ -135,34 +136,13 @@ const DataTable = () => {
 
   return (
     <div>
-      <h2>API Response Table</h2>
+      <h2 className={styles.heading}>API Response Table</h2>
       {
         //Ideally, this would keep the last entry up until you filter again, OR have all lines in the same graph. 
       }
-      {pathFilter && data.filter((entry)=> entry.path === pathFilter.toLowerCase()).length > 0 &&
-      <div>
-       <LineChart title="Response Time Over Time" width={800} height={600} data={data.filter((entry)=> entry.path === pathFilter.toLowerCase()).sort((a,b)=> Date.parse(a.timestamp) - Date.parse(b.timestamp)).map((point)=> ({
-        x: formatDate(new Date(point.timestamp)),
-        y: point.response_time    
-  }))} />
-  </div>}
-  {pathFilter && data.filter((entry) => entry.path.toLowerCase() === pathFilter.toLowerCase()).length > 0 && (
-  <div>
-    <BarChart
-      title="Error Count Over Time"
-      width={800}
-      height={600}
-      data={data
-        .filter((entry) => entry.path.toLowerCase() === pathFilter.toLowerCase())
-        .sort((a, b) => Date.parse(a.timestamp) - Date.parse(b.timestamp))
-        .map((point) => ({
-          x: formatDate(new Date(point.timestamp)),
-          y: getErrorCountByDate(data, formatDate(new Date(point.timestamp))),
-        }))}
-    />
-  </div>
-)}
-      <div>
+
+<div className={styles.filters}>
+    <div>
         <label>
           Status Code:
           <input
@@ -204,36 +184,49 @@ const DataTable = () => {
           />
         </label>
       </div>
-      <table>
-        <thead>
-          <tr>
-            <th>Timestamp</th>
-            <th>API Endpoint</th>
-            <th>Response Time</th>
-            <th>Status</th>
-            <th>Error Message</th>
-          </tr>
-        </thead>
-        <tbody>
-          {filteredData.length > 0 ? (
-            filteredData.map((item, index) => (
-              <tr key={index}>
-                <td>{new Date(item.timestamp).toLocaleString()}</td>
-                <td>{item.path}</td>
-                <td>{item.response_time}</td>
-                <td>{item.status_code}</td>
-                <td>{item?.error || "N/A"}</td>
-              </tr>
-            ))
-          ) : (
-            <tr>
-              <td colSpan={5}>No data returned for search parameters</td>
-            </tr>
-          )}
-        </tbody>
-      </table>
+      </div>
 
-      <h3>Average Response Times by Path</h3>
+      {pathFilter && (
+  <div className={styles.graphWrapper}>
+    {data.filter((entry) => entry.path.toLowerCase() === pathFilter.toLowerCase()).length > 0 && (
+      <div className={styles.chartContainer}>
+        <LineChart
+          title={`Response Time Over Time ${pathFilter}`}
+          width={800}
+          height={600}
+          data={data
+            .filter((entry) => entry.path.toLowerCase() === pathFilter.toLowerCase())
+            .sort((a, b) => Date.parse(a.timestamp) - Date.parse(b.timestamp))
+            .map((point) => ({
+              x: formatDate(new Date(point.timestamp)),
+              y: point.response_time,
+            }))}
+        />
+      </div>
+    )}
+    {data.filter((entry) => entry.path.toLowerCase() === pathFilter.toLowerCase()).length > 0 && (
+      <div className={styles.chartContainer}>
+        <BarChart
+          title={`Error Count Over Time ${pathFilter}`}
+          width={800}
+          height={600}
+          data={data
+            .filter((entry) => entry.path.toLowerCase() === pathFilter.toLowerCase())
+            .sort((a, b) => Date.parse(a.timestamp) - Date.parse(b.timestamp))
+            .map((point) => ({
+              x: formatDate(new Date(point.timestamp)),
+              y: getErrorCountByDate(data, formatDate(new Date(point.timestamp))),
+            }))}
+        />
+      </div>
+    )}
+  </div>
+)}
+
+
+<div className={styles.statisticsContainer}>
+    <div className={styles.statisticsSection}>
+<h3>Average Response Times by Path</h3>
       <table>
         <thead>
           <tr>
@@ -250,7 +243,8 @@ const DataTable = () => {
           ))}
         </tbody>
       </table>
-
+      </div>
+<div className={styles.statisticsSection}>
       <h3>Error Counts by Path</h3>
       <table>
         <thead>
@@ -266,6 +260,37 @@ const DataTable = () => {
               <td>{count}</td>
             </tr>
           ))}
+        </tbody>
+      </table>
+      </div>
+</div>
+  
+      <table className={styles.table}>
+        <thead>
+          <tr>
+            <th>Timestamp</th>
+            <th>API Endpoint</th>
+            <th>Response Time</th>
+            <th>Status</th>
+            <th>Error Message</th>
+          </tr>
+        </thead>
+        <tbody className={styles.tableBody}>
+          {filteredData.length > 0 ? (
+            filteredData.map((item, index) => (
+              <tr key={index}>
+                <td>{new Date(item.timestamp).toLocaleString()}</td>
+                <td>{item.path}</td>
+                <td>{item.response_time}</td>
+                <td>{item.status_code}</td>
+                <td>{item?.error || "N/A"}</td>
+              </tr>
+            ))
+          ) : (
+            <tr>
+              <td colSpan={5}>No data returned for search parameters</td>
+            </tr>
+          )}
         </tbody>
       </table>
     </div>
