@@ -20,7 +20,7 @@ Congrats! You can now see the project at `localhost:3000`
 * Hover behavior for BarChart
 * Checkboxes and filters
 
-###* Technology decisions: 
+### Technology decisions: 
 * React
 * Typescript
 * D3.js
