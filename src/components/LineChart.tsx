@@ -39,7 +39,7 @@ export const LineChart = ({ width, height, data, title }: LineChartProps) => {
     throw new Error("Invalid date domain: ensure your data contains valid dates.");
   }
 
-  const [domain, setDomain] = useState<[number, number]>(dateDomain);
+  const [domain, setDomain] = useState<[Date, Date]>(dateDomain);
 
   const xScale = d3.scaleTime().domain(domain).range([0, boundsWidth]);
 

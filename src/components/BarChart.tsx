@@ -1,5 +1,5 @@
 import * as d3 from "d3";
-import React, { useRef, useEffect } from "react";
+import { useRef, useEffect } from "react";
 
 const MARGIN = { top: 30, right: 30, bottom: 80, left: 80 };
 
@@ -16,7 +16,7 @@ export const BarChart = ({ title, width, height, data }:BarChartProps) => {
   const svgRef = useRef(null);
 
   useEffect(() => {
-    const svgHeight = height + MARGIN.bottom; // Dynamically adjust SVG height
+    const svgHeight = height + MARGIN.bottom; // Dynamically adjust SVG height to keep X Axis rendered properly
 
     const svg = d3.select(svgRef.current).attr("height", svgHeight);
     svg.selectAll("*").remove(); // Clear previous render
