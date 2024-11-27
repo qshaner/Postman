@@ -1,4 +1,3 @@
-# Postman
 
 ## Setup
 
